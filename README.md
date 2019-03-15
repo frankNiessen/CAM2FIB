@@ -1,5 +1,5 @@
 # CAM2FIB
-Interpretation and interpolation of G-code for creating stream files for FIB/SEM instruments.
+Program for interpretation and interpolation of G-code to create stream files for FIB/SEM instruments.
 
 The currently implemented output format is designed for use with an FEI Helios NanoLab G3 instrument, but may easily be adapted to other instruments.
 This code accepts most G-code files as an input and was tested with the G-code dialects RS274D, WinCNC and FreeCAD.
