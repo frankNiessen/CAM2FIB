@@ -6,6 +6,12 @@ function CAM2FIB
 % *************************************************************************
 % Copyright (c) 2019, Frank Niessen, EMC, AIIM, University of Wollongong
 % All rights reserved
+% If you find this program useful and apply it for your research I would 
+% appreciate a citation to the associated research paper
+% [F. Niessen, M.J.B. Nancarrow, Computer-aided manufacturing and focused 
+% ion beam technology enable machining of complex micro- and nano-structures, 
+% Nanotechnology, 2019, https://doi.org/10.1088/1361-6528/ab329d]
+% *************************************************************************
 close all; clc
 fprintf('*****************************************************************\n')
 fprintf('                         CAM2FIB.m \n');
