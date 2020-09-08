@@ -1,15 +1,15 @@
 function CAM2FIB
 %% CAM2FIB.m
-% Interpretation and interpolation of g-code to coordinate list + creation 
+% Interpretation and interpolation of g-code to coordinate list + creation
 % of a stream file for patterning with a FIB/SEM instrument
 % (Optimized for use with FEI Helios Nanolab)
 % *************************************************************************
 % Copyright (c) 2019, Frank Niessen, EMC, AIIM, University of Wollongong
 % All rights reserved
-% If you find this program useful and apply it for your research I would 
+% If you find this program useful and apply it for your research I would
 % appreciate a citation to the associated research paper
-% [F. Niessen, M.J.B. Nancarrow, Computer-aided manufacturing and focused 
-% ion beam technology enable machining of complex micro- and nano-structures, 
+% [F. Niessen, M.J.B. Nancarrow, Computer-aided manufacturing and focused
+% ion beam technology enable machining of complex micro- and nano-structures,
 % Nanotechnology, 2019, https://doi.org/10.1088/1361-6528/ab329d]
 % *************************************************************************
 close all; clc
@@ -17,13 +17,14 @@ fprintf('*****************************************************************\n')
 fprintf('                         CAM2FIB.m \n');
 fprintf('*****************************************************************\n')
 %% Initialization
+checkCurrentFolder;
 fprintf('\n*** Initializing');
 % *** File Input settings *************************************************
 [f.Name,f.Path] = uigetfile([fileparts(mfilename('fullpath')),...
                             '\Input_Gfiles\*.*'],'Select a G-code file');  % Select G-Code file
 fNameFull = [f.Path,'\',f.Name];                                           % Assemble full filename
 % *** File settings **********************************************
-f.unitLabel = 'nm';                                                        % Output length unit - 'm' 'mm' 'µm' 'nm' or 'Å'
+f.unitLabel = 'nm';                                                        % Output length unit - 'm' 'mm' 'ï¿½m' 'nm' or 'ï¿½'
 f.unitOut = convertUnit(f.unitLabel);                                      % Conversion of Output unit to m
 f.overlap = 50;                                                            % Relative overlap of beam path [%]
 f.dcrit = 0;                                                               % Minimum length for G0/beam-blank repositioning
@@ -39,7 +40,7 @@ str.nrIter = 1;                                                            % Nr 
 str.tMach = [50 100];                                                      % Pattern machining time [s] / Multiple times possible [t1 t2 t3 t4 ...]
 str.fType = 'str';                                                         % Output file extension
 % *** Scaling parameters - Patterning-Imaging-Acquisition (PIA) ***********
-PIA.rot = 0;                                                               % Clockwise pattern rotation [°]
+PIA.rot = 0;                                                               % Clockwise pattern rotation [ï¿½]
 PIA.flip = [0 0];                                                          % Flag: Flip [x y]
 PIA.scalFac = 1;                                                           % Scaling factor (linear scaling of beam path - default [1])
 PIA.cal = 0.31618*1e6;                                                     % Bits per m per Mag.
@@ -48,7 +49,7 @@ PIA.offs = [0 PIA.max(1)-PIA.max(2)];                                      % Off
 PIA.AR = PIA.max(2)/PIA.max(1);                                            % PIA aspect ratio
 PIA.relScale = 0.5;                                                        % Relative range of points in 'PIA.max' used for patterning [0 to 1]
 PIA.centrePattern = 1;                                                     % Flag: Centre pattern in Pattering range
-PIA.availMags = [.1e3 .5e3  1e3  2e3  5e3  10e3  20e3  30e3  40e3 ...  
+PIA.availMags = [.1e3 .5e3  1e3  2e3  5e3  10e3  20e3  30e3  40e3 ...
                 50e3 60e3];                                                % Available magnifications
 %% Processing
 [pos,bb.raw,opt,h] = gCode2beamPath(fNameFull,Out,f);                      % Interpolate beampath from gCode
@@ -96,7 +97,7 @@ end
 %% Interpolate beamPath from gCode  commands
 function [pos,bb,opt,h] = gCode2beamPath(fName,Out,f)
 %function beamPath = gCode2beamPath(fName,dRes,angRes,Out,f)
-% Read in of g-code file and output of interpolated beam path cooredinates 
+% Read in of g-code file and output of interpolated beam path cooredinates
 % for a given distance and angular resolution
 % fName:    File name, either relative to current folder or including
 %           absolutepath
@@ -104,8 +105,8 @@ function [pos,bb,opt,h] = gCode2beamPath(fName,Out,f)
 % scrPrint: Screen output
 % beamPath: x, y, and z coordinate list of interpolated beampath
 % ************************************************************************
-% This code curently supports commands G0, G1, G2 and G3 for rapid 
-% movement, rapid cordinated movement, clockwise arc move and counter 
+% This code curently supports commands G0, G1, G2 and G3 for rapid
+% movement, rapid cordinated movement, clockwise arc move and counter
 % clockwise arc move
 % ************************************************************************
 % Adapted from an initial version by Tom Williamson (18/06/2018)
@@ -113,13 +114,13 @@ function [pos,bb,opt,h] = gCode2beamPath(fName,Out,f)
 % Original copyrright:
 % Copyright (c) 2018, Tom Williamson
 % All rights reserved.
-% 
+%
 % Redistribution and use in source and binary forms, with or without
 % modification, are permitted provided that the following conditions are met:
-% 
+%
 % * Redistributions of source code must retain the above copyright notice, this
 %   list of conditions and the following disclaimer.
-% 
+%
 % * Redistributions in binary form must reproduce the above copyright notice,
 %   this list of conditions and the following disclaimer in the documentation
 %   and/or other materials provided with the distribution
@@ -154,13 +155,13 @@ f.rawFlength = length(rawFile);                                            %Leng
 pos.BP = NaN(opt.preAllocFac*f.rawFlength,3);                              %Allocate memory for beamPath
 bb = ones(opt.preAllocFac*f.rawFlength,1);                                 %Initialize beam blanking flag array
 Out.plotCnt = ceil(f.rawFlength/Out.plotCnt);                              %Plot Counter
-% ********** DETERMINE LINEAR RESOLUTION FROM beam DIAMETER ***************  
+% ********** DETERMINE LINEAR RESOLUTION FROM beam DIAMETER ***************
 tmp.dLine = min(find(any(contains(rawFile,'D='),2)));                      %Find line with beam diameter
 tmp.l2 = [rawFile{tmp.dLine,:}];                                           %Get lind with beam diameter
 tmp.Index = strfind(tmp.l2, 'D=');                                         %Find position of 'D='
 if isempty(tmp.Index)
     tmp.dbeam = str2double(inputdlg('Enter beam width [nm]:','Input',1));
-else    
+else
     tmp.dbeam = sscanf(tmp.l2(tmp.Index(1) + length('D='):end), '%g', 1);  %Extract diameter
 end
 opt.dRes = (100-f.overlap)/100*tmp.dbeam;                                  %Get linear resolution
@@ -181,36 +182,36 @@ for row = 1:f.rawFlength
     fullLine = rawFile(row,:);                                             %Get line
     fullLine = fullLine(~cellfun(@isempty,fullLine));                      %Remove empty line fragments
     %Remove potential line numbers
-    if strcmp(fullLine{1}(1),'N')                                          
+    if strcmp(fullLine{1}(1),'N')
          fullLine = fullLine(2:end);
     end
     %Filter out G18 G19 sections
-    if any(contains(fullLine,{'G18','G19'}))                             
+    if any(contains(fullLine,{'G18','G19'}))
         sw.G17 = 0;
     elseif any(contains(fullLine,'G17'))
         sw.G17 = 1;
     end
     %Ignore command G28 - Return to origin
-    if any(contains(fullLine,'G28'))                             
+    if any(contains(fullLine,'G28'))
         continue
     end
     pos.dArc = [0,0,0];                                                    %Reset arcOffsets
     for i = 1:length(fullLine)                                             %Loop over line fragments
         if Out.scrPrint; disp(fullLine{i}); end                            %Screen print
-        switch fullLine{i}                                                 %Check for commands G0 - G3 
+        switch fullLine{i}                                                 %Check for commands G0 - G3
             case 'G0' %Rapid Positioning
                 if Out.scrPrint; disp('Rapid positioning'); end
-                curMode = 'G0';              
+                curMode = 'G0';
             case 'G1' %Linear Interpolation
                 if Out.scrPrint; disp('Linear interpolation'); end
                 curMode = 'G1';
             case 'G2' %Controlled Arc Move, clockwise
                 if Out.scrPrint; disp('Controlled Arc Move, clockwise'); end
-                curMode = 'G2';  
+                curMode = 'G2';
                 if ~sw.G17; curMode = ''; end
             case 'G3' %Controlled Arc Move, counterclockwise
                 if Out.scrPrint; disp('Controlled Arc Move, counterclockwise'); end
-                curMode = 'G3';     
+                curMode = 'G3';
                 if ~sw.G17; curMode = ''; end
             otherwise
                 switch fullLine{i}(1)                                      %Check for coordinates X, Y, Z, I, J
@@ -219,7 +220,7 @@ for row = 1:f.rawFlength
                     case 'Y'
                         pos.new(2) = str2double(fullLine{i}(2:end));
                     case 'Z'
-                        pos.new(3) = str2double(fullLine{i}(2:end));                            
+                        pos.new(3) = str2double(fullLine{i}(2:end));
                     case 'I'
                         pos.dArc(1) = str2double(fullLine{i}(2:end));
                     case 'J'
@@ -267,13 +268,13 @@ if strcmp(Mode,'G0')
         pos.interp = pos.new;                                              %Update position
         bb(k) = 0;                                                    %Blank beam
     else                                                                   %G1 - Do standard linear interpolation
-        Mode = 'G1';                                                    
+        Mode = 'G1';
     end
 end
 %G0 - Linear interpolation ************************************************
 if strcmp(Mode,'G1')
     if d > 0 % Check non-zero distance
-        direction = (pos.new - pos.BP(k-1,:))/d;                           %Compute direction                       
+        direction = (pos.new - pos.BP(k-1,:))/d;                           %Compute direction
         pos.interp = pos.BP(k-1,:) + direction.*(0:opt.dRes:d)';           %Interpolate points
         pos.interp = [pos.interp;pos.new];                                 %Append final position
     end
@@ -285,7 +286,7 @@ function [pos,bb] = interpArc(Mode,pos,opt,bb,k)
 if opt.absIJ
     cntrPos = pos.dArc;                                                    %Absolute center position of Arc I J
 else
-    cntrPos = pos.BP(k-1,:) + pos.dArc;                                    %Relative center position of Arc I J  
+    cntrPos = pos.BP(k-1,:) + pos.dArc;                                    %Relative center position of Arc I J
 end
 % Get vectors
 v(1,:) = (pos.BP(k-1,1:2)-cntrPos(1:2));                                   %First vector
@@ -294,7 +295,7 @@ v(2,:) = (pos.new(1:2)-cntrPos(1:2));                                      %Seco
 ang(1) = atan2d(v(1,2),v(1,1));                                            %Start Angle
 ang(2) = atan2d(v(2,2),v(2,1));                                            %End Angle
 % G2 - Clockwise circle interpolation *************************************
-if strcmp(Mode,'G2')        
+if strcmp(Mode,'G2')
     r = norm(pos.new(1:2)-cntrPos(1:2));
     if ang(2) > ang(1)
        ang(2) = ang(2)-360;
@@ -303,7 +304,7 @@ end
 % G3 - Counterclockwise circle interpolation ******************************
 if strcmp(Mode,'G3')
     r = norm(v(2,:));                                                      %Radius
-    ang(find([norm(v(1,:)),norm(v(2,:))] <0.1)) = 0;                       %Set angle to 0 for short vectors                                
+    ang(find([norm(v(1,:)),norm(v(2,:))] <0.1)) = 0;                       %Set angle to 0 for short vectors
     if ang(2) < ang(1)
         ang(2) = ang(2)+360;
     end
@@ -318,7 +319,7 @@ if nrPts > 0
                   linspace(cntrPos(3),pos.new(3),length(angles))'];        %Interpolate points
     pos.interp = [pos.interp;pos.new];                                     %Append end position
 else
-    pos.interp = pos.new;                                                  %Only take over end position 
+    pos.interp = pos.new;                                                  %Only take over end position
 end
 end
 %% Interpolate beamPath
@@ -357,24 +358,24 @@ for i = 1:nrbb %Loop over block separated by beam blanking
    if bbInd(i) == 1 %Check beam blanking at first coordinate
       ind(i) = 1;
       dBP{1} = BP(1,:);
-      rng{i} = 1; 
+      rng{i} = 1;
       continue
    end
    ind(i) = bbInd(i);                                                      %Beam blanking indice
    rng{i}= ind(i-1)+1:ind(i)-1;                                            %Range of points between two beam blanking operations
    if size(rng{i},2) <= 1                                                  %No interpolation for single point
-       dBP{i} = BP(ind,:);                                                 %Set beam path    
+       dBP{i} = BP(ind,:);                                                 %Set beam path
        continue
    end
    BPtmp = BP(rng{i},:);                                                   %Choose section of beamPath
    if ~any(any(diff(BPtmp)))                                               %Check whether distance is > 0
-       dBP{i} = BP(ind,:);                                                 %Set beam path    
+       dBP{i} = BP(ind,:);                                                 %Set beam path
        continue
    end
    dChord = sqrt(sum(diff(BPtmp,[],1).^2,2));                              %Chord lengths
    dCumArcAbs = [0;cumsum(dChord)];                                        %Cummulated absolute arc length
    dChord = dChord/sum(dChord);                                            %Normalized chordlength
-   dCumArc = [0;cumsum(dChord)];                                           %Cummulated arc length  
+   dCumArc = [0;cumsum(dChord)];                                           %Cummulated arc length
    nrPts.out = ceil(max(dCumArcAbs)/opt.dRes/f.binFac);                    %Nr of output points
    if nrPts.out > size(rng{i},2)                                           %Intervene if Nrbins > NrPoints
        nrPts.out = size(rng{i},2);                                         %Correct NrOfBins
@@ -418,7 +419,7 @@ PIA.rot = 360 - PIA.rot;                                                   %Appl
 R=[cosd(PIA.rot) -sind(PIA.rot); sind(PIA.rot) cosd(PIA.rot)];             %Create rotation matrix
 pos.BPDAC = pos.BPDAC*R';                                                  %Rotate beamPath
 if PIA.rot ~= 360
-    fprintf('\n   -> The pattern was rotated clockwise by %0.0f°',...
+    fprintf('\n   -> The pattern was rotated clockwise by %0.0fï¿½',...
             360 - PIA.rot);                                                %Screen output
 end
 % *** Mirroring
@@ -454,13 +455,13 @@ if ~isempty(varargin) && strcmp(varargin{1},'IniLive')
     set(h.ax(1),'Parent',h.fig,'Color','k');                               %Create axes
     hold on;
     if Out.scatter
-        h.plt = scatter(h.ax(1),NaN,NaN,1,'w');  
+        h.plt = scatter(h.ax(1),NaN,NaN,1,'w');
     else
         h.plt = plot(h.ax(1),NaN,NaN,'w');
     end
     daspect([1 1 1]);
     xlabel(h.ax(1),['x [',f.unitLabel,']']);
-    ylabel(h.ax(1),['y [',f.unitLabel,']']); 
+    ylabel(h.ax(1),['y [',f.unitLabel,']']);
     return
 end
 % *** Plot PostProcessing
@@ -477,7 +478,7 @@ for i = 2:nrPlts
     axis(h.ax(i),'tight');
 end
 %Scanning strategy
-k = size(pos.BPinterp,1);                                                 
+k = size(pos.BPinterp,1);
 Xgr = [pos.BPinterp(:,1),pos.BPinterp(:,1)];
 Ygr = [pos.BPinterp(:,2),pos.BPinterp(:,2)];
 Zgr = [zeros(k,1),zeros(k,1)];
@@ -546,15 +547,15 @@ function saveImgs(h,f)
 if ~isdir([fileparts(mfilename('fullpath')),'\Output_StreamFiles\',f.Name])
     mkdir([fileparts(mfilename('fullpath')),'\Output_StreamFiles\',f.Name]);
 end
-for i = 1:length(h.fig) 
+for i = 1:length(h.fig)
     set(h.fig(i),'renderer','opengl','invertHardcopy','off',...
                      'units','inch','outerposition',[1,1,6,6],'color','w');
-    title(h.ax(i),'');             
+    title(h.ax(i),'');
     %set(hax_new, 'Position', get(0, 'DefaultAxesPosition'));
     %title(hax_new,'');
     print(h.fig(i),[fileparts(mfilename('fullpath')),'\Output_StreamFiles\',...
-                    f.Name,'\FIG',num2str(i),'_',h.titles{i},'.tiff'],'-dtiff','-r300');     
-    title(h.ax(i),h.titles{i});  
+                    f.Name,'\FIG',num2str(i),'_',h.titles{i},'.tiff'],'-dtiff','-r300');
+    title(h.ax(i),h.titles{i});
 end
 end
 %% ConvertUnit - Determine conversion factor
@@ -566,11 +567,11 @@ switch unitLabel
         unitOut = 1;
     case 'mm'
         unitOut = 1e-3;
-    case 'µm'
+    case 'ï¿½m'
         unitOut = 1e-6;
     case 'nm'
         unitOut = 1e-9;
-    case 'Å'
+    case 'ï¿½'
         unitOut = 1e-10;
 end
 end
@@ -587,7 +588,7 @@ if ~isdir([fileparts(mfilename('fullpath')),'\Output_StreamFiles\',fInfo.Name])
     mkdir([fileparts(mfilename('fullpath')),'\Output_StreamFiles\',fInfo.Name]);
 end
 fNameFull = [fileparts(mfilename('fullpath')),'\Output_StreamFiles\',fInfo.Name,'\',...
-              num2str(settings.patMag),'xMag_',num2str(t),'s.',settings.fType]; 
+              num2str(settings.patMag),'xMag_',num2str(t),'s.',settings.fType];
 fID = fopen(fNameFull,'w');
 fprintf(fID, '%s\n%s\n%s\n', settings.DAC, num2str(settings.nrIter),...
         num2str(nrLines+1));                                               % Write header
@@ -597,11 +598,11 @@ dlmwrite(fNameFull,pos.BPDAC,'delimiter','\t','precision','%1.0f',...
 end
 %% Text Progress bar
 function textprogressbar(c,mode)
-% This function creates a text progress bar. It should be called with a 
-% STRING argument to initialize and terminate. Otherwise the number correspoding 
+% This function creates a text progress bar. It should be called with a
+% STRING argument to initialize and terminate. Otherwise the number correspoding
 % to progress in % should be supplied.
-% INPUTS:   C   Either: Text string to initialize or terminate 
-%                       Percentage number to show progress 
+% INPUTS:   C   Either: Text string to initialize or terminate
+%                       Percentage number to show progress
 % OUBPUTS:  N/A
 % Example:  Please refer to demo_textprogressbar.m
 
@@ -618,14 +619,14 @@ persistent strCR;           %   Carriage return pesistent variable
 strPercentageLength = 10;   %   Length of percentage string (must be >5)
 strDotsMaximum      = 10;   %   The total number of dots in a progress bar
 
-% Main 
+% Main
 if strcmp(mode,'Ini')
     % Progress bar - initialization
     fprintf('%s',c);
     strCR = -1;
 elseif strcmp(mode,'Deini')
     % Progress bar  - termination
-    strCR = [];  
+    strCR = [];
     fprintf([c '\n']);
 elseif strcmp(mode,'Update')
     % Progress bar - normal progress
@@ -635,7 +636,7 @@ elseif strcmp(mode,'Update')
     nDots = floor(c/100*strDotsMaximum);
     dotOut = ['[' repmat('.',1,nDots) repmat(' ',1,strDotsMaximum-nDots) ']'];
     strOut = [percentageOut dotOut];
-    
+
     % Print it on the screen
     if strCR == -1,
         % Don't do carriage return during first run
@@ -644,23 +645,23 @@ elseif strcmp(mode,'Update')
         % Do it during all the other runs
         fprintf([strCR strOut]);
     end
-    
+
     % Update carriage return
     strCR = repmat('\b',1,length(strOut)-1);
-    
+
 else
     % Any other unexpected input
     error('Unsupported argument type');
 end
 end
 %% tileFigs - Tile figures accross screen
-function tileFigs() 
-%function tileFigs() 
+function tileFigs()
+%function tileFigs()
 %Tile all figures evenly spread accros the screen
 %% Initialization
 mon = 1;                                                                   %Choose monitor number
 offset.l = 70; offset.r = 0; offset.b = 70; offset.t = 0;                  %Offsets left right botton top (possible taskbars)
-grid = [2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4; 
+grid = [2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4;
 3 3 3 3 3 3 3 3 4 4 4 5 5 5 5 5 5 5 5 6]';                                 %Define figure grid
 %% Find figures and screen dimension
 h.figs = flip(findobj('type','figure'));                                   %Get figure handles
@@ -677,12 +678,12 @@ if ~nFigs; error('figures are not found'); return; end                     %Stop
 if nFigs > 20; error('too many figures(maximum = 20)'); return; end        %Check for limit of 20 figures
 %% Define grid according to screen aspect ratio
 if scr.w > scr.h %Widescreen
-    n.h = grid(nFigs,1);                                                   %Define number of figures in height                                                 
-    n.w = grid(nFigs,2);                                                   %Define number of figures in width         
-else 
-    n.h = grid(nFigs,2);                                                   %Define number of figures in height 
-    n.w = grid(nFigs,1);                                                   %Define number of figures in width  
-end 
+    n.h = grid(nFigs,1);                                                   %Define number of figures in height
+    n.w = grid(nFigs,2);                                                   %Define number of figures in width
+else
+    n.h = grid(nFigs,2);                                                   %Define number of figures in height
+    n.w = grid(nFigs,1);                                                   %Define number of figures in width
+end
 %% Determine height and width for each figure
 fig.h = (scr.h-offset.b)/n.h;                                              %Figure height
 fig.w =  scr.w/n.w;                                                        %Figure width
@@ -690,10 +691,10 @@ fig.w =  scr.w/n.w;                                                        %Figu
 k = 1;                                                                     %Initialize figure counter
 for i =1:n.h %Loop over height
     for j = 1:n.w  %Loop over width
-        if k > nFigs; return; end                                          %Stop when all figures have been resized 
-        fig_pos = [scr.orX + fig.w*(j-1) scr.h-fig.h*i fig.w fig.h];   %Compute new figure position 
+        if k > nFigs; return; end                                          %Stop when all figures have been resized
+        fig_pos = [scr.orX + fig.w*(j-1) scr.h-fig.h*i fig.w fig.h];   %Compute new figure position
         set(h.figs(k),'OuterPosition',fig_pos);                            %Set new figure position
         k = k + 1;                                                         %Increase figure counter
-    end 
+    end
 end
 end
